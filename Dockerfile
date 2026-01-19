@@ -1,5 +1,4 @@
 FROM jenkins/inbound-agent:latest
-# Install additional tools or dependencies if needed
-RUN apt-get update && apt-get install -y maven
-# Verify Java version (Java 11 is default)
-CMD ["java", "-version"]
+EXPOSE 8080
+ADD target/devops-integration.jar devops-integration.jar
+ENTRYPOINT ["java","-jar","/devops-integration.jar"]
