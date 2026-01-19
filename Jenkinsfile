@@ -1,39 +1,43 @@
 pipeline {
     agent any
-    tools{
-        maven 'maven_3_5_0'
+    tools {
+        // Install the Maven version configured as "M3" and add it to the path.
+        maven "M3"
     }
-    stages{
-        stage('Build Maven'){
-            steps{
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Java-Techie-jt/devops-automation']]])
-                sh 'mvn clean install'
-            }
-        }
-        stage('Build docker image'){
-            steps{
-                script{
-                    sh 'docker build -t javatechie/devops-integration .'
-                }
-            }
-        }
-        stage('Push image to Hub'){
-            steps{
-                script{
-                   withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
-                   sh 'docker login -u javatechie -p ${dockerhubpwd}'
 
-}
-                   sh 'docker push javatechie/devops-integration'
-                }
+    stages {
+        stage('Build') {
+            steps {
+                // Get some code from a GitHub repository
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/kavyamkkm/devops-automation']]])
+                // To run Maven on a Windows agent, use
+                bat "mvn -Dmaven.test.failure.ignore=true clean package"
             }
         }
-        stage('Deploy to k8s'){
-            steps{
-                script{
-                    kubernetesDeploy (configs: 'deploymentservice.yaml',kubeconfigId: 'k8sconfigpwd')
+            stage('Build docker image')
+            {
+                steps
+                {
+                    script
+                    {
+                        bat "docker build -t kavyamk0905/devops-integration ."
+                    }
                 }
+            }
+  stage('Push image to Hub') {
+    steps {
+        script {
+            withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
+                bat """
+                    echo %dockerhubpwd% | docker login -u kavyamk0905 --password-stdin
+                    docker push kavyamk0905/devops-integration
+                """
             }
         }
     }
+}
+
+
+                        
+     }
 }
